@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -26,22 +27,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	Version := "0.0.1"
-
-	slack.Command("shout <word>", func(conv hanu.ConversationInterface) {
-		str, _ := conv.String("word")
-		conv.Reply(strings.ToUpper(str))
-	})
-
-	slack.Command("whisper <word>", func(conv hanu.ConversationInterface) {
-		str, _ := conv.String("word")
-		conv.Reply(strings.ToLower(str))
-	})
+	Version := "0.0.2"
 
 	slack.Command("version", func(conv hanu.ConversationInterface) {
-		conv.Reply("Thanks for asking! I'm running `%s`", Version)
+		conv.Reply("I'm running `%s`", Version)
 	})
 
+	add(slack)
 	slack.Listen()
 }
 
@@ -56,4 +48,23 @@ func extractToken() {
 		log.Println("Couldn't open the config file")
 	}
 	err = yaml.Unmarshal(tokenFile, &token)
+}
+
+//add currently returns all words said by the user without the word add
+//future use : get that string, add an ID to it and register it as a task in a map[int]string
+func add(slack *hanu.Bot) {
+	addCommand := "add"
+	for i := 0; i < 10; i++ {
+		addCommand += fmt.Sprintf(" <word%d>", i)
+		slack.Command(addCommand, func(conv hanu.ConversationInterface) {
+			answer := strings.Fields(addCommand)
+			yolo := ""
+			temp := ""
+			for i := range answer {
+				temp, _ = conv.String(fmt.Sprintf("word%d", i))
+				yolo += fmt.Sprintf("%s ", temp)
+			}
+			conv.Reply(yolo)
+		})
+	}
 }
